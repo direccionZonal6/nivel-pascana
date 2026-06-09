@@ -1,0 +1,232 @@
+
+<h2 class="sr-only">Comparación de caudales y niveles medios - Estación HLG La Pascana, abril y mayo 2025 vs 2026</h2>
+
+<style>
+.tab-btn { padding: 8px 20px; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); border-radius: var(--border-radius-md); cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.15s; }
+.tab-btn.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+.stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; }
+.stat-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+.stat-value { font-size: 22px; font-weight: 500; margin: 0; color: var(--color-text-primary); }
+.stat-sub { font-size: 11px; color: var(--color-text-tertiary); margin: 2px 0 0; }
+</style>
+
+<div style="padding: 1rem 0;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
+    <div>
+      <p style="margin: 0 0 2px; font-size: 13px; color: var(--color-text-secondary);">Estación HLG La Pascana</p>
+      <p style="margin: 0; font-size: 11px; color: var(--color-text-tertiary);">Comparativo interanual 2025 / 2026</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="tab-btn active" onclick="switchMonth('abril')">Abril</button>
+      <button class="tab-btn" onclick="switchMonth('mayo')">Mayo</button>
+    </div>
+  </div>
+
+  <div id="stats-abril" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem;">
+    <div class="stat-card">
+      <p class="stat-label">Nivel medio máx. 2025</p>
+      <p class="stat-value">0.88</p>
+      <p class="stat-sub">metros — 4 abr</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Nivel medio máx. 2026</p>
+      <p class="stat-value">1.19</p>
+      <p class="stat-sub">metros — 2 abr</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Promedio nivel 2025</p>
+      <p class="stat-value">0.62</p>
+      <p class="stat-sub">metros</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Promedio nivel 2026</p>
+      <p class="stat-value">0.78</p>
+      <p class="stat-sub">metros</p>
+    </div>
+  </div>
+
+  <div id="stats-mayo" style="display: none; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem;">
+    <div class="stat-card">
+      <p class="stat-label">Nivel medio máx. 2025</p>
+      <p class="stat-value">1.38</p>
+      <p class="stat-sub">metros — 3 may</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Nivel medio máx. 2026</p>
+      <p class="stat-value">1.07</p>
+      <p class="stat-sub">metros — 4 may</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Promedio nivel 2025</p>
+      <p class="stat-value">0.49</p>
+      <p class="stat-sub">metros</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Datos 2026 disponibles</p>
+      <p class="stat-value">4</p>
+      <p class="stat-sub">días registrados</p>
+    </div>
+  </div>
+
+  <div style="position: relative; width: 100%; height: 320px; margin-bottom: 1.5rem;">
+    <canvas id="chartNivel" role="img" aria-label="Nivel medio diario abril 2025 vs 2026 Estación La Pascana">Nivel medio diario comparativo de abril 2025 y 2026.</canvas>
+  </div>
+
+  <div style="position: relative; width: 100%; height: 260px; margin-bottom: 1rem;">
+    <canvas id="chartCaudal" role="img" aria-label="Caudal medido abril 2025 con datos disponibles">Caudal registrado en abril 2025 (datos disponibles).</canvas>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 0.5rem; font-size: 12px; color: var(--color-text-secondary);">
+    <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 24px; height: 3px; background: #378ADD; display: inline-block; border-radius: 2px;"></span>2025</span>
+    <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 24px; height: 3px; background: #D85A30; display: inline-block; border-radius: 2px; border-top: 2px dashed #D85A30; background: none;"></span>2026</span>
+    <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; background: #1D9E75; border-radius: 2px; display: inline-block;"></span>Caudal 2025 (m³/s)</span>
+    <span style="margin-left: auto; font-size: 11px; color: var(--color-text-tertiary);">S/D = sin datos en caudal</span>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const data = {
+  abril: {
+    dias: Array.from({length: 30}, (_, i) => i + 1),
+    nivel2025: [1.43,0.70,0.87,0.88,0.67,0.46,0.41,0.36,0.34,0.37,0.35,0.36,0.72,0.69,0.69,0.65,0.63,0.61,0.60,0.60,0.63,0.77,0.73,0.68,0.61,0.60,0.59,0.58,0.58,0.57],
+    nivel2026: [0.36,1.02,0.73,1.01,null,null,null,null,null,null,null,null,0.82,0.80,0.80,0.79,0.74,0.70,0.69,0.69,0.68,0.68,0.71,0.70,0.69,0.71,0.69,0.68,0.68,0.67],
+    caudal2025: [null,null,null,65.671,null,null,12.996,null,null,null,8.120,null,null,39.364,null,32.461,null,null,null,null,32.376,null,47.304,null,31.405,null,null,25.217,null,null],
+    caudal2026: [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  },
+  mayo: {
+    dias: Array.from({length: 31}, (_, i) => i + 1),
+    nivel2025: [0.49,0.68,1.38,0.91,0.66,0.46,0.41,0.37,0.35,0.37,0.35,0.36,0.56,0.56,0.54,0.52,0.52,0.51,0.50,0.50,0.50,0.49,0.49,0.49,0.49,0.48,0.48,0.48,0.48,0.47,0.47],
+    nivel2026: [0.37,0.98,0.70,1.07,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+    caudal2025: [null,null,null,null,null,null,null,11.595,9.801,null,null,9.013,23.164,null,null,20.276,null,null,null,17.967,null,null,17.888,null,null,null,16.537,null,null,16.121,null],
+    caudal2026: [],
+  }
+};
+
+let currentMonth = 'abril';
+let chartNivel, chartCaudal;
+
+const getComputedColor = (hex, alpha) => hex + Math.round(alpha * 255).toString(16).padStart(2,'0');
+
+function buildCharts(month) {
+  const d = data[month];
+  const labels = d.dias.map(v => v.toString());
+
+  if (chartNivel) chartNivel.destroy();
+  if (chartCaudal) chartCaudal.destroy();
+
+  chartNivel = new Chart(document.getElementById('chartNivel'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '2025',
+          data: d.nivel2025,
+          borderColor: '#378ADD',
+          backgroundColor: '#378ADD22',
+          borderWidth: 2,
+          pointRadius: 2.5,
+          pointBackgroundColor: '#378ADD',
+          tension: 0.3,
+          fill: false,
+          spanGaps: false,
+        },
+        {
+          label: '2026',
+          data: d.nivel2026,
+          borderColor: '#D85A30',
+          backgroundColor: '#D85A3022',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 3,
+          pointStyle: 'triangle',
+          pointBackgroundColor: '#D85A30',
+          tension: 0.3,
+          fill: false,
+          spanGaps: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: 'Nivel medio diario (m) — ' + month.charAt(0).toUpperCase() + month.slice(1), color: '#888780', font: { size: 12, weight: '400' }, padding: { bottom: 8 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? ctx.parsed.y.toFixed(2) + ' m' : 'S/D')
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 }, color: '#888780',
+            callback: (val, i) => (i % 5 === 0 || i === 0) ? (i+1) : '' },
+          grid: { color: 'rgba(136,135,128,0.12)' },
+          title: { display: true, text: 'Día', color: '#888780', font: { size: 11 } }
+        },
+        y: {
+          ticks: { font: { size: 10 }, color: '#888780', callback: v => v.toFixed(2) + ' m' },
+          grid: { color: 'rgba(136,135,128,0.12)' },
+          title: { display: true, text: 'Nivel (m)', color: '#888780', font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  const caudalData = d.caudal2025;
+  const caudalColor = '#1D9E75';
+  chartCaudal = new Chart(document.getElementById('chartCaudal'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Caudal 2025 (m³/s)',
+          data: caudalData,
+          backgroundColor: caudalColor + 'CC',
+          borderColor: caudalColor,
+          borderWidth: 1,
+          borderRadius: 3,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: 'Caudal registrado 2025 (m³/s) — ' + month.charAt(0).toUpperCase() + month.slice(1) + ' (2026: sin datos de caudal disponibles)', color: '#888780', font: { size: 12, weight: '400' }, padding: { bottom: 8 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.parsed.y !== null ? 'Caudal: ' + ctx.parsed.y.toFixed(3) + ' m³/s' : 'S/D'
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 }, color: '#888780',
+            callback: (val, i) => (i % 5 === 0 || i === 0) ? (i+1) : '' },
+          grid: { display: false },
+          title: { display: true, text: 'Día', color: '#888780', font: { size: 11 } }
+        },
+        y: {
+          ticks: { font: { size: 10 }, color: '#888780', callback: v => v.toFixed(0) },
+          grid: { color: 'rgba(136,135,128,0.12)' },
+          title: { display: true, text: 'm³/s', color: '#888780', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+function switchMonth(month) {
+  currentMonth = month;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === month));
+  document.getElementById('stats-abril').style.display = month === 'abril' ? 'grid' : 'none';
+  document.getElementById('stats-mayo').style.display = month === 'mayo' ? 'grid' : 'none';
+  buildCharts(month);
+}
+
+buildCharts('abril');
+</script>
